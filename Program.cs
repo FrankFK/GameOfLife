@@ -1,5 +1,5 @@
 ﻿using GameOfLife;
-using System.Threading;
+using System.Collections.Generic;
 using Woopec.Core;
 
 internal class Program
@@ -8,28 +8,37 @@ internal class Program
     {
         int rowCount = 120;
         int columnCount = 120;
-        var game = new Game(rowCount, columnCount);
         var renderer = new Renderer(rowCount, columnCount, 6);
         string gosperGilderGun = @"
-       .........................X
-       .......................X.X
-       .............XX......XX............XX
-       ............X...X....XX............XX
-       .XX........X.....X...XX
-       .XX........X...X.XX....X.X
-       ...........X.....X.......X
-       ............X...X........
-       .............XX.
-";
-        game.SetSeed(gosperGilderGun);
-        while(true)
+        .........................X
+        .......................X.X
+        .............XX......XX............XX
+        ............X...X....XX............XX
+        .XX........X.....X...XX
+        .XX........X...X.XX....X.X
+        ...........X.....X.......X
+        ............X...X........
+        .............XX.";
+        var seed = AliveCellPositionsOfSeed(gosperGilderGun);
+        var game = new Game(rowCount, columnCount, seed, renderer);
+        game.Run(iterationCount: 76);
+        Screen.Default.Bye();   
+    }
+
+    private static IEnumerable<CellPosition> AliveCellPositionsOfSeed(string seedString)
+    {
+        const char aliveMarker = 'X';
+        var lines = seedString.Split('\n');
+        int row = 0;
+        foreach (var line in lines)
         {
-            foreach (var cellId in game.AllCellsIds())
+            int column = line.IndexOf(aliveMarker);
+            while (column != -1)
             {
-                renderer.SetCell(cellId, game.CellAt(cellId).IsAlive);
+                yield return new CellPosition(row, column);
+                column = line.IndexOf(aliveMarker, column + 1);
             }
-            game.NextIteration();
-            Thread.Sleep(5);
+            row++;
         }
     }
 
